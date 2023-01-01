@@ -2,7 +2,7 @@ from copy import deepcopy
 
 def minmax(board, depth, max_player):
     if(depth == 0 or board.check_win() or board.check_tie()):
-        return board.evaluate(), board
+        return board.evaluate(depth), board
 
     if(max_player):
         maxEval = float('-inf')

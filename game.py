@@ -1,5 +1,6 @@
 from minmax import minmax
-
+import time
+import pygame as pg
 class board():
     def __init__(self):
         self.board = [[' ', ' ', ' '],[' ', ' ', ' '],[' ', ' ', ' ']]
@@ -45,94 +46,66 @@ class board():
         if(tie and not self.check_win()):
             return True
 
-    def evaluate(self):
+    def evaluate(self, depth):
         score = 0
         w = self.check_win()
         if w == 'X':
-            score += 10
+            score += (10 - depth)
         elif w == 'O':
-            score -= 10
-
-        else:
-            #check for 2 in a line
-            for i in range(3):
-                #Check columns
-                if self.board[i][0] == self.board[i][1] != ' ':
-                    if self.board[i][0] == 'X':
-                        score += 3
-                    else:
-                        score -= 3
-                if self.board[i][1] == self.board[i][2] != ' ':
-                    if self.board[i][1] == 'X':
-                        score += 3
-                    else:
-                        score -= 3
-                #Check rows
-                if self.board[0][i] == self.board[1][i] != ' ':
-                    if self.board[0][i] == 'X':
-                        score += 3
-                    else:
-                        score -= 3
-                if self.board[1][i] == self.board[2][i] != ' ':
-                    if self.board[1][i] == 'X':
-                        score += 3
-                    else:
-                        score -= 3
-            #Check diagonals
-            if self.board[0][0] == self.board[1][1] != ' ': 
-                if self.board[0][0] == 'X':
-                    score += 3
-                else:
-                    score -= 3
-            if self.board[1][1] == self.board[2][2] != ' ': 
-                if self.board[1][1] == 'X':
-                    score += 3
-                else:
-                    score -= 3
-            if self.board[0][2] == self.board[1][1] != ' ':
-                if self.board[0][2] == 'X':
-                    score += 3
-                else:
-                    score -= 3
-            if self.board[1][1] == self.board[2][0] != ' ':
-                if self.board[1][1] == 'X':
-                    score += 3
-                else:
-                    score -= 3
+            score -= (10 - depth)
+        
         return score
+
 
     def makeAIMove(self, newBoard):
         self.board = newBoard.board
         return
 
 
-
 b = board()
-b.print_board()
-player = 'O'
-position = [0,1,2]
-while(not(b.check_win() or b.check_tie())):
-    if(player == 'O'):
-        moved = False
-        while(not moved):
-            row = int(input("Row: "))
-            col = int(input("Col: "))
-            if(row in position and col in position):
-                moved = b.make_move(player, row, col)
-            else:
-                print("Invalid input")
-                moved = False
-        player = 'X'
-    else:
-        value, newBoard = minmax(b, 5, True)
-        b.makeAIMove(newBoard)
-        player = 'O'
+pg.init()
+screen = pg.display.set_mode((600, 600))
+pg.display.set_caption("Tic Tac Toe")
+clock = pg.time.Clock()
+running = True
+while running:
+    clock.tick(60)
+    if b.check_win():
+        print("Player {} wins!".format(b.check_win()))
+        time.sleep(3)
+        running = False
+    elif b.check_tie():
+        print("Tie game!")
+        time.sleep(3)
+        running = False
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            running = False
+    if event.type == pg.MOUSEBUTTONDOWN:
+        pos = pg.mouse.get_pos()
+        i = pos[0]//200
+        j = pos[1]//200
+        if b.board[i][j] == ' ':
+            b.make_move('O', i, j)
+            value, newBoard = minmax(b, 6, True)
+            b.makeAIMove(newBoard)
 
-    b.print_board()
+    screen.fill((255, 255, 255))
+    #draw the board
+    pg.draw.line(screen, (0, 0, 0), (200, 0), (200, 600), 5)
+    pg.draw.line(screen, (0, 0, 0), (400, 0), (400, 600), 5)
+    pg.draw.line(screen, (0, 0, 0), (0, 200), (600, 200), 5)
+    pg.draw.line(screen, (0, 0, 0), (0, 400), (600, 400), 5)
+    
+    #draw x's and o's from the board
+    for i in range(3):
+        for j in range(3):
+            if b.board[i][j] == 'X':
+                pg.draw.line(screen, (0, 0, 0), (i*200+10, j*200+10), (i*200+190, j*200+190), 5)
+                pg.draw.line(screen, (0, 0, 0), (i*200+190, j*200+10), (i*200+10, j*200+190), 5)
+            elif b.board[i][j] == 'O':
+                pg.draw.circle(screen, (0, 0, 0), (i*200+100, j*200+100), 90, 5)
 
-if b.check_win():
-    print("Player {} wins!".format(b.check_win()))
-else:
-    print("Tie game!")
-
+    pg.display.flip()
+pg.quit()
 
